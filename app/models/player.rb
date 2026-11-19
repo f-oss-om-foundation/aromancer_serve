@@ -169,16 +169,19 @@ class Player < ApplicationRecord
       next_id = self.id unless active_legend.current.player_words.where(player_id: next_id).any?
       active_legend.current.update(turn_player_id: next_id) if active_legend.current.unspoken_words.any?
       active_legend.reload.current # trigger finalization now if no unspoken words
-      active_legend.current.reload
-      # generate all possibilities for next player
-      # todo: this is currently not running
-      Word.generate_possibilities_for_player(active_legend.current.turn_player)
 
-      if active_legend.current.turn_player.kind_of?(BotPlayer)
-        # poke the bot player
-        active_legend.current.turn_player.poke
-      else
-        PlayerChannel.broadcast_to(active_legend.current.turn_player, {type: :arena, id: active_legend.id})
+      unless active_legend.current.nil?
+        active_legend.current.reload
+        # generate all possibilities for next player
+        # todo: this is currently not running
+        Word.generate_possibilities_for_player(active_legend.current.turn_player)
+
+        if active_legend.current.turn_player.kind_of?(BotPlayer)
+          # poke the bot player
+          active_legend.current.turn_player.poke
+        else
+          PlayerChannel.broadcast_to(active_legend.current.turn_player, {type: :arena, id: active_legend.id})
+        end
       end
     end
   end
